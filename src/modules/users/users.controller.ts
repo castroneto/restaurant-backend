@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, CreateUserRes } from './user.dto';
+import { CreateUserDto, TokenDto, LoginDto } from './user.dto';
 import { ApiTags, ApiCreatedResponse } from '@nestjs/swagger';
 import { User } from '../../entities/user.entity';
 import { HashService } from '../services/hash.service';
@@ -15,7 +15,7 @@ export class UsersController {
 
     @Post('/create')
     @ApiCreatedResponse({
-        type: CreateUserRes,
+        type: TokenDto,
     })
     async createUser(@Body() body: CreateUserDto ): Promise<any>  {
         let user = await this.userService.findOne({ email: body.email })
@@ -42,6 +42,30 @@ export class UsersController {
           access_token: this.jwtService.sign(payload),
         };
 
+    }
+
+
+    @Post('/login')
+    @ApiCreatedResponse({
+        type: TokenDto,
+    })
+    async login(@Body() body: LoginDto): Promise<any> {
+        let user = await this.userService.findOne({ email: body.email })
+        if(!user) {
+            throw new HttpException('User Not Found', HttpStatus.UNAUTHORIZED);
+        }
+
+        const isValid = await this.hashService.compare(body.password, user.password)
+
+        if(!isValid) {
+            throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
+        }
+
+        const payload = { username: user.name, sub: user.id };
+
+        return {
+          access_token: this.jwtService.sign(payload),
+        };
     }
 
 }

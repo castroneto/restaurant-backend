@@ -14,7 +14,18 @@ export class CreateUserDto {
     password_verification: string;
 }
 
-export class CreateUserRes {
+export class TokenDto {
     @ApiProperty()
     token: string;
+}
+
+
+export class LoginDto {
+
+    @ApiProperty()
+    email: string;
+
+    @ApiProperty()
+    password: string;
+
 }
